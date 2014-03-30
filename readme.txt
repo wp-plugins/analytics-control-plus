@@ -20,6 +20,7 @@ Google Analytics can be operated in several modes:
 
 To swap between these usually requires editing the Google JavaScript and ensuring you have everything correct.
 This plugin avoids the need to edit JavaScript by doing it all for you.
+Plus it makes it easy to see exactly what you have enabled per site.
 
 This plugin also provides a fix for bounce tracking, in that an event gets generated after a configurable timeout once they have scrolled down the page. This way if the user is actually reading a page it won't be counted as a bounce.
 
