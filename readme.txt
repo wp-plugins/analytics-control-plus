@@ -1,6 +1,6 @@
 === Analytics Control Plus ===
 Contributors: aykira
-Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking, tracking, stats
+Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking, tracking, stats, statistics, page views, time on site, seo, conversion
 Requires at least: 3.5
 Tested up to: 3.8.1
 Stable tag: 1.0
