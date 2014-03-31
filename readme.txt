@@ -1,6 +1,6 @@
 === Analytics Control Plus ===
 Contributors: aykira
-Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking
+Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking, tracking, stats
 Requires at least: 3.5
 Tested up to: 3.8.1
 Stable tag: 1.0
@@ -16,7 +16,7 @@ Google Analytics can be operated in several modes:
 * Plain simple Google Analytics - usage of the site is tracked
 * Google Analytics with demographics tracking
 * Google Analytics with enhanced link attribution
-* Google analytics with demographics and link attribution
+* Google Analytics with demographics and link attribution
 
 To swap between these usually requires editing the Google JavaScript and ensuring you have everything correct, often requiring technical skills.
 This plugin avoids the need to edit JavaScript by doing it all for you and thereby avoiding costly mistakes.
