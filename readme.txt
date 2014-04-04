@@ -60,8 +60,8 @@ Contact us using [this form](http://www.aykira.com.au/contact/)
 
 == Changelog ==
 
-= 1.0 =
-* Initial Release
-
 = 1.1 =
 * Can disable GA per page if required.
+
+= 1.0 =
+* Initial Release
