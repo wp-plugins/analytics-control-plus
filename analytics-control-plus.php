@@ -3,7 +3,7 @@
 Plugin Name: Analytics Control Plus
 Plugin URI: http://www.aykira.com.au/programming/wordpress-plugins/
 Description: Adds Google Analytics tracking code to WordPress with options to: set bounce timeout; enhanced inpage link tracking; demographics controls. Hides code when logged in as Admin.
-Version: 1.0
+Version: 1.1
 Author: Aykira Internet Solutions
 Author URI: http://www.aykira.com.au/
 License: GPL2
@@ -13,7 +13,8 @@ if ( !defined('ABSPATH') ) { die('-1'); }
 
 class acp_plugin {
   const PLUGIN_OPTIONS = 'analytics_control_plus';
- 
+  const META_KEY = 'acp_dont_track';
+
   protected static $instance;
   public $analytics_id='';
   public $inpage_tracking=false;
@@ -44,15 +45,97 @@ class acp_plugin {
       if(isset($opts['bounce_timeout'])) $this->bounce_timeout=$opts['bounce_timeout'];
     }
 
+    add_action('add_meta_boxes', array($this,'meta_box_dont_track') );
+    add_action( 'save_post', array($this,'save_postdata') );
     add_action('wp_footer', array($this,'tracking_code')); 
     add_action('admin_menu', array($this,'admin_menu'));
     add_action('admin_init',array($this,'register_Settings'));
   }
 
 
+
+  function meta_box_dont_track() {
+    add_meta_box( 'acp-dont-track-box-id',          // ID attribute of metabox
+                  "Analytics Control Plus",            // Title of metabox visible to user
+                  array($this,'meta_box_callback'), // Function that prints box in wp-admin
+                  'page',            // Show box for posts, pages, custom, etc.
+                  'side',            // Where on the page to show the box
+                  'default' );       // Priority of box in display order
+  }
+
+
+  function meta_box_callback($post) {
+    wp_nonce_field( 'acp_inner_custom_box', 'acp_inner_custom_box_nonce' );
+
+    /*
+     * Use get_post_meta() to retrieve an existing value
+     * from the database and use the value for the form.
+     */
+    $value = get_post_meta( $post->ID, self::META_KEY, true );
+
+    echo '<label for="acp_dont_track">Disable Google Analytics</label> &nbsp;';
+    echo '<input type="checkbox" id="acp_dont_track" name="acp_dont_track" value="Y"';
+    if( $value=='Y' ) echo ' checked';
+    echo '/>';
+  }
+
+
+
+
+  function save_postdata( $post_id ) {
+    if ( ! isset( $_POST['acp_inner_custom_box_nonce'] ) )
+      return $post_id;
+
+    $nonce = $_POST['acp_inner_custom_box_nonce'];
+
+    // Verify that the nonce is valid.
+    if ( ! wp_verify_nonce( $nonce, 'acp_inner_custom_box' ) )
+      return $post_id;
+
+    // If this is an autosave, our form has not been submitted, so we don't want to do anything.
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) 
+      return $post_id;
+
+    // Check the user's permissions.
+    if ( 'page' == $_POST['post_type'] ) {
+
+      if ( ! current_user_can( 'edit_page', $post_id ) )
+        return $post_id;
+  
+    } else {
+
+      if ( ! current_user_can( 'edit_post', $post_id ) )
+        return $post_id;
+    }
+
+    /* OK, its safe for us to save the data now. */
+
+    // Sanitize user input.
+    $mydata = ($_POST['acp_dont_track']=='Y') ? 'Y' : 'N';
+
+    // Update the meta field in the database.
+    update_post_meta( $post_id, self::META_KEY, $mydata );
+  }
+
+
+
+
+
+
+
   function tracking_code() {
     $code_id=$this->analytics_id;
     if(empty($code_id)) return;
+
+    if(is_page()) {
+      $page_id = get_queried_object_id();
+      $value=get_post_meta($page_id,self::META_KEY, true);
+      if($value=='Y') {
+	echo "<!--- GA disabled for this page -->";
+	return;  // no GA here!!
+      }
+    }
+
     $bounce_timeout=$this->bounce_timeout*1000;
 
     $tracking_script = <<<_TRACKING_CODE_

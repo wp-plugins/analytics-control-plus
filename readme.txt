@@ -1,9 +1,9 @@
 === Analytics Control Plus ===
 Contributors: aykira
-Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking, tracking, stats, statistics, page views, time on site, seo, conversion
+Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking, tracking, stats, statistics, page views, time on site, seo, conversion, privacy
 Requires at least: 3.5
 Tested up to: 3.8.1
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -26,9 +26,11 @@ This plugin also provides a fix for bounce tracking, in that an event gets gener
 
 The plugin also won't insert the Google Analytics code if you are logged in as the Admin.
 
+The plugin also allows you to turn off Google Analytics tracking for specific pages if required (i.e. privacy or performance).
+
 Upcoming Features:
 
-* Fine grain control over when the code is used (i.e. role type and page)
+* Fine grain control over when the code is used (i.e. role type)
 
 [Plugin Home Page](http://www.aykira.com.au/2014/03/analytics-control/)
 
@@ -60,3 +62,6 @@ Contact us using [this form](http://www.aykira.com.au/contact/)
 
 = 1.0 =
 * Initial Release
+
+= 1.1 =
+* Can disable GA per page if required.
