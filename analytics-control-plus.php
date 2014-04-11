@@ -3,7 +3,7 @@
 Plugin Name: Analytics Control Plus
 Plugin URI: http://www.aykira.com.au/programming/wordpress-plugins/
 Description: Adds Google Analytics tracking code to WordPress with options to: set bounce timeout; enhanced inpage link tracking; demographics controls. Hides code when logged in as Admin.
-Version: 1.1
+Version: 1.2
 Author: Aykira Internet Solutions
 Author URI: http://www.aykira.com.au/
 License: GPL2
@@ -20,7 +20,7 @@ class acp_plugin {
   public $inpage_tracking=false;
   public $bounce_timeout=30;
   public $demographics=false;
-
+  public $excluded_ips=array();
 
   public static function instance() {
     if (!isset(self::$instance)) {
@@ -35,7 +35,8 @@ class acp_plugin {
       add_option(PLUGIN_OPTIONS,
 		 array('bounce_timeout'=>30,
 		       'inpage_tracking'=>'N',
-		       'demographics'=>'N')); }
+		       'demographics'=>'N',
+		       'excluded_ips'=>'')); }
 
     $opts = get_option(PLUGIN_OPTIONS);
     if(isset($opts)) {
@@ -43,6 +44,13 @@ class acp_plugin {
       if(isset($opts['inpage_tracking'])) $this->inpage_tracking=($opts['inpage_tracking']=='Y');
       if(isset($opts['demographics'])) $this->demographics=($opts['demographics']=='Y');
       if(isset($opts['bounce_timeout'])) $this->bounce_timeout=$opts['bounce_timeout'];
+      if(isset($opts['excluded_ips'])) {
+	$out=array();
+	foreach(explode(',',str_replace(' ','',$opts['excluded_ips'])) as $ip) {
+	  $out[]='#^'.str_replace('.','\.',$ip).'#';
+	}
+	$this->excluded_ips=$out;
+      }
     }
 
     add_action('add_meta_boxes', array($this,'meta_box_dont_track') );
@@ -118,14 +126,29 @@ class acp_plugin {
   }
 
 
+  private function get_ip() {
+    foreach(array('HTTP_X_FORWARDED_FOR','HTTP_X_FORWARDED','HTTP_FORWARDED_FOR','HTTP_VIA',
+		  'HTTP_CLIENT_IP','REMOTE_ADDR') as $f) {
+      if(isset($_SERVER[$f])) return $_SERVER[$f];
+    }
+
+    return 'NA';
+  }
 
 
-
+  private function blocked_ip($ip) {
+    foreach($this->excluded_ips as $bl) {
+      if(preg_match($bl,$ip)) return true;
+    }
+    return false;
+  }
 
 
   function tracking_code() {
     $code_id=$this->analytics_id;
     if(empty($code_id)) return;
+
+    if($this->blocked_ip($this->get_ip())) return;
 
     if(is_page()) {
       $page_id = get_queried_object_id();
@@ -223,6 +246,7 @@ _TRACKING_CODE_;
     add_settings_field('inpage_tracking', 'Enable Enhanced Link Attribution', array($this,'settings_inPage_Tracking'), 'acp_plugin', 'plugin_main');
     add_settings_field('demographics', 'Enable Demographics and Interest Reports', array($this,'settings_demographics'), 'acp_plugin', 'plugin_main');
     add_settings_field('bounce_timeout', 'Debounce Timeout', array($this,'settings_bounce_timeout'), 'acp_plugin', 'plugin_main');
+    add_settings_field('excluded_ips', 'Excluded IPs', array($this,'settings_excluded_ips'), 'acp_plugin', 'plugin_main');
   }
 
 
@@ -261,6 +285,12 @@ _TRACKING_CODE_;
   public function settings_bounce_timeout() {
     $options = get_option(PLUGIN_OPTIONS);
     echo "<input id='bounce_timeout' name='".PLUGIN_OPTIONS."[bounce_timeout]' type='text' value='".$options['bounce_timeout']."' size='3'/> (seconds) <small>Minimum 5 seconds.</small>";
+  }
+
+
+  public function settings_excluded_ips() {
+    $options = get_option(PLUGIN_OPTIONS);
+    echo "<input id='excluded_ips' name='".PLUGIN_OPTIONS."[excluded_ips]' type='text' value='".$options['excluded_ips']."' size='30'/><br/><small>Comma separated list of IP's excluded (or subnets)<br/>&nbsp;Current IP = ".$this->get_ip()."</small>";
   }
 
 }

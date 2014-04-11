@@ -3,7 +3,7 @@ Contributors: aykira
 Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking, tracking, stats, statistics, page views, time on site, seo, conversion, privacy
 Requires at least: 3.5
 Tested up to: 3.8.1
-Stable tag: 1.1
+Stable tag: 1.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,6 +27,8 @@ This plugin also provides a fix for bounce tracking, in that an event gets gener
 The plugin also won't insert the Google Analytics code if you are logged in as the Admin.
 
 The plugin also allows you to turn off Google Analytics tracking for specific pages if required (i.e. privacy or performance).
+
+You are also now able to turn off Google Analytics for a set of request IP's or subnets (i.e. your office), saves having to fiddle with IP settings in GA itself.
 
 Upcoming Features:
 
@@ -59,6 +61,9 @@ Contact us using [this form](http://www.aykira.com.au/contact/)
 1. Just enter your Analytics ID into the settings page, set the options and you are done.
 
 == Changelog ==
+
+= 1.2 =
+* Can disable GA by request source IP if required.
 
 = 1.1 =
 * Can disable GA per page if required.
