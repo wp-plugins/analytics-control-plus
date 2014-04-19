@@ -3,7 +3,7 @@ Contributors: aykira
 Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking, tracking, stats, statistics, page views, time on site, seo, conversion, privacy, universal analytics
 Requires at least: 3.5
 Tested up to: 3.9.0
-Stable tag: 1.3
+Stable tag: 1.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -34,9 +34,11 @@ The plugin also allows you to turn off Google Analytics tracking for specific pa
 
 You are also now able to turn off Google Analytics for a set of request IP's or subnets (i.e. your office), saves having to fiddle with IP settings in GA itself.
 
+We have also just implemented the ability to turn off tracking by role..
+
 Upcoming Features:
 
-* Fine grain control over when the code is used (i.e. role type)
+* Easy event tracking, no code cutting required...
 
 [Plugin Home Page](http://www.aykira.com.au/2014/03/analytics-control/)
 
@@ -54,17 +56,25 @@ This section describes how to install the plugin and get it working.
 
 = Can I select the user type who is tracked? =
 
-No, but it is planned to be done
+Yes, this is in from version 1.4 onwards
 
 = How do I get help? =
 
 Contact us using [this form](http://www.aykira.com.au/contact/)
+
+= Have an idea or suggested improvement? =
+
+Again, contact us using [this form](http://www.aykira.com.au/contact/)
 
 == Screenshots ==
 
 1. Just enter your Analytics ID into the settings page, set the options and you are done.
 
 == Changelog ==
+
+= 1.4 =
+* Support for role based exclusion from tracking.
+* Control over if the tracking code goes in the header or footer (defaults to header now).
 
 = 1.3 =
 * Support for Universal Analytics - just set to Yes in the settings and its changed.

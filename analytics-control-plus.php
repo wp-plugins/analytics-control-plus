@@ -2,8 +2,8 @@
 /*
 Plugin Name: Analytics Control Plus
 Plugin URI: http://www.aykira.com.au/programming/wordpress-plugins/
-Description: Adds Google Analytics tracking code to WordPress with options to: set bounce timeout; enhanced inpage link tracking; demographics controls. Hides code when logged in as Admin.
-Version: 1.3
+Description: Adds Google Analytics tracking code to WordPress with options to: set bounce timeout; enhanced inpage link tracking; demographics controls. Hides code depending on role.
+Version: 1.4
 Author: Aykira Internet Solutions
 Author URI: http://www.aykira.com.au/
 License: GPL2
@@ -22,6 +22,8 @@ class acp_plugin {
   public $bounce_timeout=30;
   public $demographics=false;
   public $excluded_ips=array();
+  public $roles_off=array();
+  public $in_footer=false;
 
   public static function instance() {
     if (!isset(self::$instance)) {
@@ -38,7 +40,9 @@ class acp_plugin {
 		       'analytics_js'=>'N',
 		       'inpage_tracking'=>'N',
 		       'demographics'=>'N',
-		       'excluded_ips'=>'')); }
+		       'excluded_ips'=>'',
+		       'roles_off'=>'administrator',
+		       'in_footer'=>'N')); }
 
     $opts = get_option(PLUGIN_OPTIONS);
     if(isset($opts)) {
@@ -47,6 +51,7 @@ class acp_plugin {
       if(isset($opts['inpage_tracking'])) $this->inpage_tracking=($opts['inpage_tracking']=='Y');
       if(isset($opts['demographics'])) $this->demographics=($opts['demographics']=='Y');
       if(isset($opts['bounce_timeout'])) $this->bounce_timeout=$opts['bounce_timeout'];
+      if(isset($opts['in_footer'])) $this->in_footer=$opts['in_footer'];
       if(isset($opts['excluded_ips'])) {
 	$out=array();
 	foreach(explode(',',str_replace(' ','',$opts['excluded_ips'])) as $ip) {
@@ -54,11 +59,17 @@ class acp_plugin {
 	}
 	$this->excluded_ips=$out;
       }
+      if(isset($opts['roles_off'])) {
+	$this->roles_off=explode('|',$opts['roles_off']);
+      }
+      else {
+	$this->roles_off=array("administrator");
+      }
     }
 
     add_action('add_meta_boxes', array($this,'meta_box_dont_track') );
     add_action( 'save_post', array($this,'save_postdata') );
-    add_action('wp_footer', array($this,'tracking_code')); 
+    add_action( $this->in_footer ? 'wp_footer' : 'wp_head', array($this,'tracking_code')); 
     add_action('admin_menu', array($this,'admin_menu'));
     add_action('admin_init',array($this,'register_Settings'));
   }
@@ -239,11 +250,20 @@ $tracking_script.= <<<_TRACKING_CODE_
 </script>
 _TRACKING_CODE_;
     }
-    if (!current_user_can('edit_published_posts')) {
+    $doit=true;
+    $role='';
+    $current_user = wp_get_current_user();
+    if(isset($current_user)) {
+      $roles = $current_user->roles;
+      $role = array_shift($roles);
+      if(in_array($role,$this->roles_off)) $doit=false;
+    }
+
+    if($doit) {
       echo $tracking_script;
     }
     else {
-      echo "<!--- Analytics Control Plus is working but not showing code due to you being logged in as admin -->";
+      echo "<!--- Analytics Control Plus is working but not showing code due to you being logged in as $role -->";
     }
   }
 
@@ -266,7 +286,8 @@ _TRACKING_CODE_;
 <input type="image" src="https://www.paypalobjects.com/en_AU/i/btn/btn_buynowCC_LG.gif" border="0" name="submit" alt="PayPal -- The safer, easier way to pay online.">
 <img alt="" border="0" src="https://www.paypalobjects.com/en_AU/i/scr/pixel.gif" width="1" height="1">
 </form><br/>
-   <small>Every little bit helps &amp; encourages more development, please contribute if you can.</small>
+   <small>Every little bit helps &amp; encourages more development, please contribute.</small></br>
+<small><b>Have an idea or suggestion?<br/>Please <a href="http://www.aykira.com.au/contact/" target="_blank">Contact Us</a>.</b></small>
 </div>
 <form method='post' action="options.php" style="width:58%;float:left;">
 <?php settings_fields('acp_settings_group'); ?>
@@ -290,7 +311,9 @@ _TRACKING_CODE_;
     add_settings_field('inpage_tracking', 'Enable Enhanced Link Attribution', array($this,'settings_inPage_Tracking'), 'acp_plugin', 'plugin_main');
     add_settings_field('demographics', 'Enable Demographics and Interest Reports', array($this,'settings_demographics'), 'acp_plugin', 'plugin_main');
     add_settings_field('bounce_timeout', 'Debounce Timeout', array($this,'settings_bounce_timeout'), 'acp_plugin', 'plugin_main');
+    add_settings_field('in_footer', 'Put Code in Footer', array($this,'settings_in_footer'), 'acp_plugin', 'plugin_main');
     add_settings_field('excluded_ips', 'Excluded IPs', array($this,'settings_excluded_ips'), 'acp_plugin', 'plugin_main');
+    add_settings_field('roles_off', 'Excluded Roles from Tracking', array($this,'settings_roles_off'), 'acp_plugin', 'plugin_main');
   }
 
 
@@ -298,7 +321,17 @@ _TRACKING_CODE_;
     $input['analytics_id']=trim($input['analytics_id']);
     $input['bounce_timeout']=$input['bounce_timeout']*1;
     if($input['bounce_timeout']<5) $input['bounce_timeout']=5;
-
+    global $wp_roles;
+    $roles=$wp_roles->get_names();
+    $off_roles=array();
+    foreach($roles as $role) {
+      if(isset($input["role_$role"])) {
+	$rolel=strtolower($role);
+	$off_roles[]=$rolel;
+	unset($input["role_$role"]);
+      }
+    }
+    $input['roles_off']=implode('|',$off_roles);
     return $input;
   }
 
@@ -339,9 +372,32 @@ _TRACKING_CODE_;
   }
 
 
+  public function settings_in_footer() {
+    $options = get_option(PLUGIN_OPTIONS);
+    echo "<input id='in_footer' name='".PLUGIN_OPTIONS."[in_footer]' type='checkbox' value='Y'";
+    if($options['in_footer']=='Y') echo " checked='yes'";
+    echo " /> <small>Put in the footer if you have JavaScript clashes.</small>";
+  }
+
+
   public function settings_excluded_ips() {
     $options = get_option(PLUGIN_OPTIONS);
     echo "<input id='excluded_ips' name='".PLUGIN_OPTIONS."[excluded_ips]' type='text' value='".$options['excluded_ips']."' size='30'/><br/><small>Comma separated list of IP's excluded (or subnets)<br/>&nbsp;Current IP = ".$this->get_ip()."</small>";
+  }
+
+
+  public function settings_roles_off() {
+    $options = get_option(PLUGIN_OPTIONS);
+
+    global $wp_roles;
+    $roles=$wp_roles->get_names();
+    foreach($roles as $role) {
+      echo "&nbsp;&nbsp;<input type='checkbox' name='".PLUGIN_OPTIONS."[role_$role]' value='Y'";
+      $rolel=strtolower($role);
+      if(in_array($rolel,$this->roles_off)) echo " checked";
+      echo "> $role<br/>";
+    }
+    echo "<small>Select those roles who you do <u>not</u> want tracked on site.</small>";
   }
 
 }
