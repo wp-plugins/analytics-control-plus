@@ -3,7 +3,7 @@
 Plugin Name: Analytics Control Plus
 Plugin URI: http://www.aykira.com.au/programming/wordpress-plugins/
 Description: Adds Google Analytics tracking code to WordPress with options to: set bounce timeout; enhanced inpage link tracking; demographics controls. Hides code when logged in as Admin.
-Version: 1.2
+Version: 1.3
 Author: Aykira Internet Solutions
 Author URI: http://www.aykira.com.au/
 License: GPL2
@@ -17,6 +17,7 @@ class acp_plugin {
 
   protected static $instance;
   public $analytics_id='';
+  public $analytics_js=false;
   public $inpage_tracking=false;
   public $bounce_timeout=30;
   public $demographics=false;
@@ -34,6 +35,7 @@ class acp_plugin {
     if (!get_option(PLUGIN_OPTIONS)) { 
       add_option(PLUGIN_OPTIONS,
 		 array('bounce_timeout'=>30,
+		       'analytics_js'=>'N',
 		       'inpage_tracking'=>'N',
 		       'demographics'=>'N',
 		       'excluded_ips'=>'')); }
@@ -41,6 +43,7 @@ class acp_plugin {
     $opts = get_option(PLUGIN_OPTIONS);
     if(isset($opts)) {
       if(isset($opts['analytics_id'])) $this->analytics_id=$opts['analytics_id'];
+      if(isset($opts['analytics_js'])) $this->analytics_js=($opts['analytics_js']=='Y');
       if(isset($opts['inpage_tracking'])) $this->inpage_tracking=($opts['inpage_tracking']=='Y');
       if(isset($opts['demographics'])) $this->demographics=($opts['demographics']=='Y');
       if(isset($opts['bounce_timeout'])) $this->bounce_timeout=$opts['bounce_timeout'];
@@ -143,6 +146,17 @@ class acp_plugin {
     return false;
   }
 
+  private function siteDomain() {
+    $site=get_site_url();
+    if(preg_match('#^https?://(.*)$#si',$site,$matches)) {
+      $site=$matches[1];
+    }
+    if(preg_match('#^www\.(.*)$#si',$site,$matches)) {
+      $site=$matches[1];
+    }
+
+    return $site;
+  }
 
   function tracking_code() {
     $code_id=$this->analytics_id;
@@ -160,7 +174,36 @@ class acp_plugin {
     }
 
     $bounce_timeout=$this->bounce_timeout*1000;
+    $tracking_script='';
+    if($this->analytics_js) {
+      $site=$this->siteDomain();
+      $tracking_script = <<<_TRACKING_CODE_
+<script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', '$code_id', '$site');
 
+_TRACKING_CODE_;
+      if($this->inpage_tracking=='Y') {
+        $tracking_script.="    ga('require', 'linkid', 'linkid.js');\n";
+      }
+      if($this->demographics) {
+        $tracking_script.="    ga('require', 'displayfeatures');\n";
+      }
+      $tracking_script.=<<<_TRACKING_CODE_
+    ga('send', 'pageview');
+    setTimeout(function() {
+         window.onscroll = function() {
+           window.onscroll = null; // Only track the event once
+           ga('send','event', 'scroll', 'read');
+         }
+       }, $bounce_timeout);
+_TRACKING_CODE_;
+      $tracking_script.="</script>\n";
+    }
+    else {
     $tracking_script = <<<_TRACKING_CODE_
 <script type="text/javascript">
 var _gaq = _gaq || [];
@@ -195,7 +238,7 @@ $tracking_script.= <<<_TRACKING_CODE_
 })();
 </script>
 _TRACKING_CODE_;
-
+    }
     if (!current_user_can('edit_published_posts')) {
       echo $tracking_script;
     }
@@ -243,6 +286,7 @@ _TRACKING_CODE_;
     register_setting('acp_settings_group',PLUGIN_OPTIONS,array($this,'options_validate'));
     add_settings_section('plugin_main', 'Google Analytics Code', array($this,'ga_section'), 'acp_plugin');
     add_settings_field('analytics_id', 'Analytics ID', array($this,'settings_analytics_id'), 'acp_plugin', 'plugin_main');
+    add_settings_field('analytics_js', 'Enable Universal Analytics', array($this,'settings_analytics_js'), 'acp_plugin', 'plugin_main');
     add_settings_field('inpage_tracking', 'Enable Enhanced Link Attribution', array($this,'settings_inPage_Tracking'), 'acp_plugin', 'plugin_main');
     add_settings_field('demographics', 'Enable Demographics and Interest Reports', array($this,'settings_demographics'), 'acp_plugin', 'plugin_main');
     add_settings_field('bounce_timeout', 'Debounce Timeout', array($this,'settings_bounce_timeout'), 'acp_plugin', 'plugin_main');
@@ -266,6 +310,13 @@ _TRACKING_CODE_;
   public function settings_analytics_id() {
     $options = get_option(PLUGIN_OPTIONS);
     echo "<input id='analytics_id' name='".PLUGIN_OPTIONS."[analytics_id]' type='text' value='".$options['analytics_id']."' size='20'/>";
+  }
+
+  public function settings_analytics_js() {
+    $options = get_option(PLUGIN_OPTIONS);
+    echo "<input id='analytics_js' name='".PLUGIN_OPTIONS."[analytics_js]' type='checkbox' value='Y'";
+    if($options['analytics_js']=='Y') echo " checked='yes'";
+    echo " /> <small><a target='_blank' href='https://developers.google.com/analytics/devguides/collection/upgrade/guide'>Google Help details</a>. (site domain = ".$this->siteDomain()."). Migrate to Universal Analytics first in GA before turning on!</small>";
   }
 
   public function settings_inPage_Tracking() {
