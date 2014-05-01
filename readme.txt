@@ -3,7 +3,7 @@ Contributors: aykira
 Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking, tracking, stats, statistics, page views, time on site, seo, conversion, privacy, universal analytics
 Requires at least: 3.5
 Tested up to: 3.9.0
-Stable tag: 1.5
+Stable tag: 1.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,21 +20,19 @@ Google Analytics can be operated in several modes:
 * Universal Analytics (new version)
 * Universal Analytics with demographics tracking
 * Universal Analytics with enhanced link attribution
-* Universal Analytics with demographics and link attribution
+* Universal Analytics with UserID session tracking
+* Universal Analytics with demographics, link attribution and UserID session tracking
 
 To swap between these usually requires editing the Google JavaScript and ensuring you have everything correct, often requiring technical skills.
 This plugin avoids the need to edit JavaScript by doing it all for you and thereby avoiding costly mistakes.
 Plus it makes it easy to see exactly what you have enabled per site.
 
-This plugin also provides a fix for bounce tracking, in that an event gets generated after a configurable timeout once they have scrolled down the page. This way if the user is actually reading a page it won't be counted as a bounce.
+This plugin also:
 
-The plugin also won't insert the Google Analytics code if you are logged in as the Admin.
-
-The plugin also allows you to turn off Google Analytics tracking for specific pages if required (i.e. privacy or performance).
-
-You are also now able to turn off Google Analytics for a set of request IP's or subnets (i.e. your office), saves having to fiddle with IP settings in GA itself.
-
-We have also just implemented the ability to turn off tracking by role..
+* Provides a fix for bounce tracking, in that an event gets generated after a configurable timeout once they have scrolled down the page. This way if the user is actually reading a page it won't be counted as a bounce.
+* Allows you to turn off Google Analytics tracking for specific pages if required (i.e. privacy or performance).
+* Allows you to turn off Google Analytics for a set of request IP's or subnets (i.e. your office), saves having to fiddle with IP settings in GA itself.
+* Allows you to turn off tracking by role (by default Administrator).
 
 Upcoming Features:
 
@@ -71,6 +69,9 @@ Again, contact us using [this form](http://www.aykira.com.au/contact/)
 1. Just enter your Analytics ID into the settings page, set the options and you are done.
 
 == Changelog ==
+
+= 1.6 =
+* Support for UserID tracking in GA (thanks Keesjan!)
 
 = 1.5 =
 * Bug fix with blank space in IP field

@@ -3,7 +3,7 @@
 Plugin Name: Analytics Control Plus
 Plugin URI: http://www.aykira.com.au/programming/wordpress-plugins/
 Description: Adds Google Analytics tracking code to WordPress with options to: set bounce timeout; enhanced inpage link tracking; demographics controls. Hides code depending on role.
-Version: 1.5
+Version: 1.6
 Author: Aykira Internet Solutions
 Author URI: http://www.aykira.com.au/
 License: GPL2
@@ -24,6 +24,8 @@ class acp_plugin {
   public $excluded_ips=array();
   public $roles_off=array();
   public $in_footer=false;
+  public $ua_userid=false;
+  private $event_func='';
 
   public static function instance() {
     if (!isset(self::$instance)) {
@@ -42,7 +44,8 @@ class acp_plugin {
 		       'demographics'=>'N',
 		       'excluded_ips'=>'',
 		       'roles_off'=>'administrator',
-		       'in_footer'=>'N')); }
+		       'in_footer'=>'N',
+		       'ua_userid'=>'N')); }
 
     $opts = get_option(PLUGIN_OPTIONS);
     if(isset($opts)) {
@@ -52,13 +55,11 @@ class acp_plugin {
       if(isset($opts['demographics'])) $this->demographics=($opts['demographics']=='Y');
       if(isset($opts['bounce_timeout'])) $this->bounce_timeout=$opts['bounce_timeout'];
       if(isset($opts['in_footer'])) $this->in_footer=$opts['in_footer'];
+      if(isset($opts['ua_userid'])) $this->ua_userid=($opts['ua_userid']=='Y');
       if(isset($opts['excluded_ips'])) {
 	$out=array();
 	foreach(explode(',',str_replace(' ','',$opts['excluded_ips'])) as $ip) {
-	  $ip=trim($ip);
-	  if(!empty($ip)) {
-	    $out[]='#^'.str_replace('.','\.',$ip).'#';
-	  }
+	  $out[]='#^'.str_replace('.','\.',$ip).'#';
 	}
 	$this->excluded_ips=$out;
       }
@@ -75,6 +76,65 @@ class acp_plugin {
     add_action( $this->in_footer ? 'wp_footer' : 'wp_head', array($this,'tracking_code')); 
     add_action('admin_menu', array($this,'admin_menu'));
     add_action('admin_init',array($this,'register_Settings'));
+    add_shortcode('ga_event',array($this,'shortcode_ga_event'));
+  }
+
+
+
+  function shortcode_ga_event($atts, $content='') {
+    $cat='';
+    if(isset($atts['cat'])) $cat=trim($atts['cat']);
+    if(isset($atts['category'])) $cat=trim($atts['category']);
+
+    $act='';
+    if(isset($atts['act'])) $act=trim($atts['act']);
+    if(isset($atts['action'])) $act=trim($atts['action']);
+
+    $lab='';
+    if(isset($atts['lab'])) $lab=trim($atts['lab']);
+    if(isset($atts['label'])) $lab=trim($atts['label']);
+
+    $val='';
+    if(isset($atts['val'])) $val=trim($atts['val']);
+    if(isset($atts['value'])) $val=trim($atts['value']);
+
+    if(empty($cat) || empty($act)) return $content;
+
+    $args=array("'".$cat."'","'".$act."'");
+
+    if(!empty($lab)) {
+      $args[]="'".$lab."'";
+      if(!empty($val)) $args[]=$val;
+    }
+
+    $this->event_func='';
+    if($this->analytics_js) {
+      $this->event_func="ga(".implode(',',$args).");";
+    }
+    else {
+      $this->event_func="_gaq.push(['_trackEvent',".implode(',',$args)."]);";
+    }
+
+    // need to search the enclosed markup for <a href
+    // FIXME - extract and parse out attributes and recombine after..
+
+    $content = preg_replace_callback('#(<a href="[^"]+" onclick=")([^"]+)(">)#si',$content,array($this,'callback_event1'));
+    $content = preg_replace_callback('#(<a (title="[^"]+" )?href="[^"]+")>#si',$content,array($this,'callback_event2'));
+
+    return $content;
+  }
+
+
+  private function callback_event1($matches) {
+    if(!preg_match('#(ga|_gaq\.push)\(#si',$matches[2])) { // don't put in the event call if one already there
+      return $matches[1].$this->event_func.$matches[2].$matches[3];
+    }
+    return $matches[0];
+  }
+
+
+  private function callback_event2($matches) {
+    return $matches[1].' onclick="'.$this->event_func.'return true;">';
   }
 
 
@@ -197,9 +257,21 @@ class acp_plugin {
 	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-    ga('create', '$code_id', '$site');
 
 _TRACKING_CODE_;
+      $default=true;
+      if($this->ua_userid) {
+	$current_user = wp_get_current_user();
+	if(isset($current_user)) {
+	  $default=false;
+	  $userEnc=substr(md5($current_user->user_email.site_url()),0,16);
+	  $tracking_script.="    ga('create', '$code_id', { 'userId' : '$userEnc' });\n";
+	}
+      }
+
+      if($default) {
+	$tracking_script.="    ga('create', '$code_id', '$site');\n";
+      }
       if($this->inpage_tracking=='Y') {
         $tracking_script.="    ga('require', 'linkid', 'linkid.js');\n";
       }
@@ -317,6 +389,7 @@ _TRACKING_CODE_;
     add_settings_field('in_footer', 'Put Code in Footer', array($this,'settings_in_footer'), 'acp_plugin', 'plugin_main');
     add_settings_field('excluded_ips', 'Excluded IPs', array($this,'settings_excluded_ips'), 'acp_plugin', 'plugin_main');
     add_settings_field('roles_off', 'Excluded Roles from Tracking', array($this,'settings_roles_off'), 'acp_plugin', 'plugin_main');
+    add_settings_field('ua_userid', 'UA User ID Sessions', array($this,'settings_ua_userid'), 'acp_plugin', 'plugin_main');
   }
 
 
@@ -401,6 +474,13 @@ _TRACKING_CODE_;
       echo "> $role<br/>";
     }
     echo "<small>Select those roles who you do <u>not</u> want tracked on site.</small>";
+  }
+
+  public function settings_ua_userid() {
+    $options = get_option(PLUGIN_OPTIONS);
+    echo "<input id='ua_userid' name='".PLUGIN_OPTIONS."[ua_userid]' type='checkbox' value='Y'";
+    if($options['ua_userid']=='Y') echo " checked='yes'";
+    echo " /> <small><a href='https://support.google.com/analytics/answer/3123669?hl=en&ref_topic=3276066' target='_blank'>Google details.</a> Track userID sessions (UA only)</small>";
   }
 
 }
