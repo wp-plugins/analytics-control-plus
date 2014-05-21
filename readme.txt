@@ -3,7 +3,7 @@ Contributors: aykira
 Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking, tracking, stats, statistics, page views, time on site, seo, conversion, privacy, universal analytics
 Requires at least: 3.5
 Tested up to: 3.9.0
-Stable tag: 1.6
+Stable tag: 1.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,9 @@ Again, contact us using [this form](http://www.aykira.com.au/contact/)
 1. Just enter your Analytics ID into the settings page, set the options and you are done.
 
 == Changelog ==
+
+= 1.7 =
+* Further fix for whitespace blank IP field
 
 = 1.6 =
 * Support for UserID tracking in GA (thanks Keesjan!)
