@@ -2,8 +2,8 @@
 Contributors: aykira
 Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking, tracking, stats, statistics, page views, time on site, seo, conversion, privacy, universal analytics
 Requires at least: 3.5
-Tested up to: 3.9.0
-Stable tag: 1.7
+Tested up to: 3.9.1
+Stable tag: 1.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -21,7 +21,8 @@ Google Analytics can be operated in several modes:
 * Universal Analytics with demographics tracking
 * Universal Analytics with enhanced link attribution
 * Universal Analytics with UserID session tracking
-* Universal Analytics with demographics, link attribution and UserID session tracking
+* Universal Analytics with ECommerce transaction tracking
+* Universal Analytics with demographics, link attribution, UserID session and ECommerce transaction tracking
 
 To swap between these usually requires editing the Google JavaScript and ensuring you have everything correct, often requiring technical skills.
 This plugin avoids the need to edit JavaScript by doing it all for you and thereby avoiding costly mistakes.
@@ -69,6 +70,9 @@ Again, contact us using [this form](http://www.aykira.com.au/contact/)
 1. Just enter your Analytics ID into the settings page, set the options and you are done.
 
 == Changelog ==
+
+= 1.8 =
+* UA ECommerce transaction initialisation
 
 = 1.7 =
 * Further fix for whitespace blank IP field

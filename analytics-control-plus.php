@@ -3,7 +3,7 @@
 Plugin Name: Analytics Control Plus
 Plugin URI: http://www.aykira.com.au/programming/wordpress-plugins/
 Description: Adds Google Analytics tracking code to WordPress with options to: set bounce timeout; enhanced inpage link tracking; demographics controls. Hides code depending on role.
-Version: 1.7
+Version: 1.8
 Author: Aykira Internet Solutions
 Author URI: http://www.aykira.com.au/
 License: GPL2
@@ -25,6 +25,7 @@ class acp_plugin {
   public $roles_off=array();
   public $in_footer=false;
   public $ua_userid=false;
+  public $ua_ecommerce=false;
   private $event_func='';
 
   public static function instance() {
@@ -45,7 +46,8 @@ class acp_plugin {
 		       'excluded_ips'=>'',
 		       'roles_off'=>'administrator',
 		       'in_footer'=>'N',
-		       'ua_userid'=>'N')); }
+		       'ua_userid'=>'N',
+		       'ua_ecommerce'=>'N')); }
 
     $opts = get_option(PLUGIN_OPTIONS);
     if(isset($opts)) {
@@ -56,12 +58,11 @@ class acp_plugin {
       if(isset($opts['bounce_timeout'])) $this->bounce_timeout=$opts['bounce_timeout'];
       if(isset($opts['in_footer'])) $this->in_footer=$opts['in_footer'];
       if(isset($opts['ua_userid'])) $this->ua_userid=($opts['ua_userid']=='Y');
+      if(isset($opts['ua_ecommerce'])) $this->ua_ecommerce=($opts['ua_ecommerce']=='Y');
       if(isset($opts['excluded_ips'])) {
 	$out=array();
 	foreach(explode(',',str_replace(' ','',$opts['excluded_ips'])) as $ip) {
-	  if(!empty($ip)) {
-	    $out[]='#^'.str_replace('.','\.',$ip).'#';
-	  }
+	  $out[]='#^'.str_replace('.','\.',$ip).'#';
 	}
 	$this->excluded_ips=$out;
       }
@@ -250,6 +251,15 @@ class acp_plugin {
     }
 
     $bounce_timeout=$this->bounce_timeout*1000;
+    $userEnc='';
+    if($this->ua_userid) {
+      $current_user = wp_get_current_user();
+      if(isset($current_user)) {
+	$default=false;
+	$userEnc=substr(md5($current_user->user_email.site_url()),0,16);
+      }
+    }
+
     $tracking_script='';
     if($this->analytics_js) {
       $site=$this->siteDomain();
@@ -261,24 +271,22 @@ class acp_plugin {
     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
 _TRACKING_CODE_;
-      $default=true;
-      if($this->ua_userid) {
-	$current_user = wp_get_current_user();
-	if(isset($current_user)) {
-	  $default=false;
-	  $userEnc=substr(md5($current_user->user_email.site_url()),0,16);
-	  $tracking_script.="    ga('create', '$code_id', { 'userId' : '$userEnc' });\n";
-	}
-      }
 
-      if($default) {
+      if(empty($userEnc)) {
 	$tracking_script.="    ga('create', '$code_id', '$site');\n";
       }
+      else {
+	$tracking_script.="    ga('create', '$code_id', { 'userId' : '$userEnc' });\n";
+      }
+
       if($this->inpage_tracking=='Y') {
         $tracking_script.="    ga('require', 'linkid', 'linkid.js');\n";
       }
       if($this->demographics) {
         $tracking_script.="    ga('require', 'displayfeatures');\n";
+      }
+      if($this->ua_ecommerce) {
+        $tracking_script.="    ga('require', 'ecommerce','ecommerce.js');\n";
       }
       $tracking_script.=<<<_TRACKING_CODE_
     ga('send', 'pageview');
@@ -392,6 +400,7 @@ _TRACKING_CODE_;
     add_settings_field('excluded_ips', 'Excluded IPs', array($this,'settings_excluded_ips'), 'acp_plugin', 'plugin_main');
     add_settings_field('roles_off', 'Excluded Roles from Tracking', array($this,'settings_roles_off'), 'acp_plugin', 'plugin_main');
     add_settings_field('ua_userid', 'UA User ID Sessions', array($this,'settings_ua_userid'), 'acp_plugin', 'plugin_main');
+    add_settings_field('ua_ecommerce', 'UA ECommerce support', array($this,'settings_ua_ecommerce'), 'acp_plugin', 'plugin_main');
   }
 
 
@@ -483,6 +492,13 @@ _TRACKING_CODE_;
     echo "<input id='ua_userid' name='".PLUGIN_OPTIONS."[ua_userid]' type='checkbox' value='Y'";
     if($options['ua_userid']=='Y') echo " checked='yes'";
     echo " /> <small><a href='https://support.google.com/analytics/answer/3123669?hl=en&ref_topic=3276066' target='_blank'>Google details.</a> Track userID sessions (UA only)</small>";
+  }
+
+  public function settings_ua_ecommerce() {
+    $options = get_option(PLUGIN_OPTIONS);
+    echo "<input id='ua_ecommerce' name='".PLUGIN_OPTIONS."[ua_ecommerce]' type='checkbox' value='Y'";
+    if($options['ua_ecommerce']=='Y') echo " checked='yes'";
+    echo " /> <small><a href='https://developers.google.com/analytics/devguides/collection/analyticsjs/ecommerce' target='_blank'>Google details.</a> Record Transaction data (UA only)</small>";
   }
 
 }
