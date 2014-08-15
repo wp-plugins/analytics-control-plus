@@ -3,7 +3,7 @@
 Plugin Name: Analytics Control Plus
 Plugin URI: http://www.aykira.com.au/programming/wordpress-plugins/
 Description: Adds Google Analytics tracking code to WordPress with options to: set bounce timeout; enhanced inpage link tracking; demographics controls. Hides code depending on role.
-Version: 1.8
+Version: 1.9
 Author: Aykira Internet Solutions
 Author URI: http://www.aykira.com.au/
 License: GPL2
@@ -61,8 +61,9 @@ class acp_plugin {
       if(isset($opts['ua_ecommerce'])) $this->ua_ecommerce=($opts['ua_ecommerce']=='Y');
       if(isset($opts['excluded_ips'])) {
 	$out=array();
-	foreach(explode(',',str_replace(' ','',$opts['excluded_ips'])) as $ip) {
-	  $out[]='#^'.str_replace('.','\.',$ip).'#';
+	foreach(explode(',',str_replace(' ','',trim($opts['excluded_ips']))) as $ip) {
+	  $ip=trim($ip);
+	  if(!empty($ip)) $out[]='#^'.str_replace('.','\.',$ip).'#';
 	}
 	$this->excluded_ips=$out;
       }
