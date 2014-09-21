@@ -3,7 +3,7 @@ Contributors: aykira
 Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking, tracking, stats, statistics, page views, time on site, seo, conversion, privacy, universal analytics
 Requires at least: 3.5
 Tested up to: 3.9.1
-Stable tag: 1.9
+Stable tag: 1.10
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,10 +17,13 @@ Google Analytics can be operated in several modes:
 * Google Analytics with demographics tracking
 * Google Analytics with enhanced link attribution
 * Google Analytics with demographics and link attribution
+* Google Analytics with UserID session tracking
+* Google Analytics with Remarketing/Display Advertising
 * Universal Analytics (new version)
 * Universal Analytics with demographics tracking
 * Universal Analytics with enhanced link attribution
 * Universal Analytics with UserID session tracking
+* Universal Anlaytics with Remarketing/Display Advertising
 * Universal Analytics with ECommerce transaction tracking
 * Universal Analytics with demographics, link attribution, UserID session and ECommerce transaction tracking
 
@@ -70,6 +73,9 @@ Again, contact us using [this form](http://www.aykira.com.au/contact/)
 1. Just enter your Analytics ID into the settings page, set the options and you are done.
 
 == Changelog ==
+
+= 1.10 =
+* Support for remarketing/Display Advertising (AdWords)
 
 = 1.9 =
 * Further fix for excluded IP's whitespace issues

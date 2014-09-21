@@ -26,6 +26,7 @@ class acp_plugin {
   public $in_footer=false;
   public $ua_userid=false;
   public $ua_ecommerce=false;
+  public $display_features=false;
   private $event_func='';
 
   public static function instance() {
@@ -47,7 +48,8 @@ class acp_plugin {
 		       'roles_off'=>'administrator',
 		       'in_footer'=>'N',
 		       'ua_userid'=>'N',
-		       'ua_ecommerce'=>'N')); }
+		       'ua_ecommerce'=>'N',
+		       'display_features'=>'N')); }
 
     $opts = get_option(PLUGIN_OPTIONS);
     if(isset($opts)) {
@@ -59,6 +61,7 @@ class acp_plugin {
       if(isset($opts['in_footer'])) $this->in_footer=$opts['in_footer'];
       if(isset($opts['ua_userid'])) $this->ua_userid=($opts['ua_userid']=='Y');
       if(isset($opts['ua_ecommerce'])) $this->ua_ecommerce=($opts['ua_ecommerce']=='Y');
+      if(isset($opts['display_features'])) $this->ua_ecommerce=($opts['display_features']=='Y');
       if(isset($opts['excluded_ips'])) {
 	$out=array();
 	foreach(explode(',',str_replace(' ','',trim($opts['excluded_ips']))) as $ip) {
@@ -289,6 +292,10 @@ _TRACKING_CODE_;
       if($this->ua_ecommerce) {
         $tracking_script.="    ga('require', 'ecommerce','ecommerce.js');\n";
       }
+      if($this->display_features) {
+        $tracking_script.="    ga('require', 'displayfeatures');\n";
+      }
+
       $tracking_script.=<<<_TRACKING_CODE_
     ga('send', 'pageview');
     setTimeout(function() {
@@ -323,7 +330,7 @@ setTimeout(function() {
 (function() {
   var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
 _TRACKING_CODE_;
-if($this->demographics) {
+if($this->demographics || $this->display_features) {
   $tracking_script.="  ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';\n";
 }
 else {
@@ -396,6 +403,7 @@ _TRACKING_CODE_;
     add_settings_field('analytics_js', 'Enable Universal Analytics', array($this,'settings_analytics_js'), 'acp_plugin', 'plugin_main');
     add_settings_field('inpage_tracking', 'Enable Enhanced Link Attribution', array($this,'settings_inPage_Tracking'), 'acp_plugin', 'plugin_main');
     add_settings_field('demographics', 'Enable Demographics and Interest Reports', array($this,'settings_demographics'), 'acp_plugin', 'plugin_main');
+    add_settings_field('demographics', 'Enable Remarketing', array($this,'settings_remarketing'), 'acp_plugin', 'plugin_main');
     add_settings_field('bounce_timeout', 'Debounce Timeout', array($this,'settings_bounce_timeout'), 'acp_plugin', 'plugin_main');
     add_settings_field('in_footer', 'Put Code in Footer', array($this,'settings_in_footer'), 'acp_plugin', 'plugin_main');
     add_settings_field('excluded_ips', 'Excluded IPs', array($this,'settings_excluded_ips'), 'acp_plugin', 'plugin_main');
@@ -500,6 +508,13 @@ _TRACKING_CODE_;
     echo "<input id='ua_ecommerce' name='".PLUGIN_OPTIONS."[ua_ecommerce]' type='checkbox' value='Y'";
     if($options['ua_ecommerce']=='Y') echo " checked='yes'";
     echo " /> <small><a href='https://developers.google.com/analytics/devguides/collection/analyticsjs/ecommerce' target='_blank'>Google details.</a> Record Transaction data (UA only)</small>";
+  }
+
+  public function settings_remarketing() {
+    $options = get_option(PLUGIN_OPTIONS);
+    echo "<input id='display_features' name='".PLUGIN_OPTIONS."[display_features]' type='checkbox' value='Y'";
+    if($options['display_features']=='Y') echo " checked='yes'";
+    echo " /> <small><a href='https://support.google.com/adwords/answer/2476688?hl=en' target='_blank'>Google details.</a> Turns on Display Advertising Support</small>";
   }
 
 }
