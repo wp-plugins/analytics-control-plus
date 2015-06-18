@@ -3,7 +3,7 @@
 Plugin Name: Analytics Control Plus
 Plugin URI: http://www.aykira.com.au/programming/wordpress-plugins/
 Description: Adds Google Analytics tracking code to WordPress with options to: set bounce timeout; enhanced inpage link tracking; demographics controls. Hides code depending on role.
-Version: 1.9
+Version: 1.11
 Author: Aykira Internet Solutions
 Author URI: http://www.aykira.com.au/
 License: GPL2
@@ -38,20 +38,27 @@ class acp_plugin {
   }
 
   protected function __construct( ) {
-    if (!get_option(PLUGIN_OPTIONS)) { 
-      add_option(PLUGIN_OPTIONS,
-		 array('bounce_timeout'=>30,
-		       'analytics_js'=>'N',
-		       'inpage_tracking'=>'N',
-		       'demographics'=>'N',
-		       'excluded_ips'=>'',
-		       'roles_off'=>'administrator',
-		       'in_footer'=>'N',
-		       'ua_userid'=>'N',
-		       'ua_ecommerce'=>'N',
-		       'display_features'=>'N')); }
+    if(!get_option(self::PLUGIN_OPTIONS)) { 
+      $opt=get_option('PLUGIN_OPTIONS'); // backwards compat
+      if(isset($opt) && isset($opt['roles_off'])) {
+	add_option(self::PLUGIN_OPTIONS,$opt);
+      }
+      else {
+	add_option(self::PLUGIN_OPTIONS,
+		   array('bounce_timeout'=>30,
+			 'analytics_js'=>'N',
+			 'inpage_tracking'=>'N',
+			 'demographics'=>'N',
+			 'excluded_ips'=>'',
+			 'roles_off'=>'administrator',
+			 'in_footer'=>'N',
+			 'ua_userid'=>'N',
+			 'ua_ecommerce'=>'N',
+			 'display_features'=>'N'));
+      }
+    }
 
-    $opts = get_option(PLUGIN_OPTIONS);
+    $opts = get_option(self::PLUGIN_OPTIONS);
     if(isset($opts)) {
       if(isset($opts['analytics_id'])) $this->analytics_id=$opts['analytics_id'];
       if(isset($opts['analytics_js'])) $this->analytics_js=($opts['analytics_js']=='Y');
@@ -397,7 +404,7 @@ _TRACKING_CODE_;
 
 
   public function register_Settings() {
-    register_setting('acp_settings_group',PLUGIN_OPTIONS,array($this,'options_validate'));
+    register_setting('acp_settings_group',self::PLUGIN_OPTIONS,array($this,'options_validate'));
     add_settings_section('plugin_main', 'Google Analytics Code', array($this,'ga_section'), 'acp_plugin');
     add_settings_field('analytics_id', 'Analytics ID', array($this,'settings_analytics_id'), 'acp_plugin', 'plugin_main');
     add_settings_field('analytics_js', 'Enable Universal Analytics', array($this,'settings_analytics_js'), 'acp_plugin', 'plugin_main');
@@ -437,58 +444,60 @@ _TRACKING_CODE_;
   }
 
   public function settings_analytics_id() {
-    $options = get_option(PLUGIN_OPTIONS);
-    echo "<input id='analytics_id' name='".PLUGIN_OPTIONS."[analytics_id]' type='text' value='".$options['analytics_id']."' size='20'/>";
+    $options = get_option(self::PLUGIN_OPTIONS);
+    $id='';
+    if(isset($options['analytics_id'])) $id=$options['analytics_id'];
+    echo "<input id='analytics_id' name='".self::PLUGIN_OPTIONS."[analytics_id]' type='text' value='".$id."' size='20'/>";
   }
 
   public function settings_analytics_js() {
-    $options = get_option(PLUGIN_OPTIONS);
-    echo "<input id='analytics_js' name='".PLUGIN_OPTIONS."[analytics_js]' type='checkbox' value='Y'";
+    $options = get_option(self::PLUGIN_OPTIONS);
+    echo "<input id='analytics_js' name='".self::PLUGIN_OPTIONS."[analytics_js]' type='checkbox' value='Y'";
     if($options['analytics_js']=='Y') echo " checked='yes'";
     echo " /> <small><a target='_blank' href='https://developers.google.com/analytics/devguides/collection/upgrade/guide'>Google Help details</a>. (site domain = ".$this->siteDomain()."). Migrate to Universal Analytics first in GA before turning on!</small>";
   }
 
   public function settings_inPage_Tracking() {
-    $options = get_option(PLUGIN_OPTIONS);
-    echo "<input id='inpage_tracking' name='".PLUGIN_OPTIONS."[inpage_tracking]' type='checkbox' value='Y'";
+    $options = get_option(self::PLUGIN_OPTIONS);
+    echo "<input id='inpage_tracking' name='".self::PLUGIN_OPTIONS."[inpage_tracking]' type='checkbox' value='Y'";
     if($options['inpage_tracking']=='Y') echo " checked='yes'";
     echo " /> <small><a target='_blank' href='https://support.google.com/analytics/answer/2558867?hl=en&utm_id=ad'>Google Help details</a>. Turn on in GA as well!</small>";
   }
 
   public function settings_demographics() {
-    $options = get_option(PLUGIN_OPTIONS);
-    echo "<input id='demographics' name='".PLUGIN_OPTIONS."[demographics]' type='checkbox' value='Y'";
+    $options = get_option(self::PLUGIN_OPTIONS);
+    echo "<input id='demographics' name='".self::PLUGIN_OPTIONS."[demographics]' type='checkbox' value='Y'";
     if($options['demographics']=='Y') echo " checked='yes'";
     echo " /> <small><a target='_blank' href='https://support.google.com/analytics/answer/2444872?hl=en&utm_id=ad'>Google Help details</a>. Turn on in GA as well!</small>";
   }
 
   public function settings_bounce_timeout() {
-    $options = get_option(PLUGIN_OPTIONS);
-    echo "<input id='bounce_timeout' name='".PLUGIN_OPTIONS."[bounce_timeout]' type='text' value='".$options['bounce_timeout']."' size='3'/> (seconds) <small>Minimum 5 seconds.</small>";
+    $options = get_option(self::PLUGIN_OPTIONS);
+    echo "<input id='bounce_timeout' name='".self::PLUGIN_OPTIONS."[bounce_timeout]' type='text' value='".$options['bounce_timeout']."' size='3'/> (seconds) <small>Minimum 5 seconds.</small>";
   }
 
 
   public function settings_in_footer() {
-    $options = get_option(PLUGIN_OPTIONS);
-    echo "<input id='in_footer' name='".PLUGIN_OPTIONS."[in_footer]' type='checkbox' value='Y'";
+    $options = get_option(self::PLUGIN_OPTIONS);
+    echo "<input id='in_footer' name='".self::PLUGIN_OPTIONS."[in_footer]' type='checkbox' value='Y'";
     if($options['in_footer']=='Y') echo " checked='yes'";
     echo " /> <small>Put in the footer if you have JavaScript clashes.</small>";
   }
 
 
   public function settings_excluded_ips() {
-    $options = get_option(PLUGIN_OPTIONS);
-    echo "<input id='excluded_ips' name='".PLUGIN_OPTIONS."[excluded_ips]' type='text' value='".$options['excluded_ips']."' size='30'/><br/><small>Comma separated list of IP's excluded (or subnets)<br/>&nbsp;Current IP = ".$this->get_ip()."</small>";
+    $options = get_option(self::PLUGIN_OPTIONS);
+    echo "<input id='excluded_ips' name='".self::PLUGIN_OPTIONS."[excluded_ips]' type='text' value='".$options['excluded_ips']."' size='30'/><br/><small>Comma separated list of IP's excluded (or subnets)<br/>&nbsp;Current IP = ".$this->get_ip()."</small>";
   }
 
 
   public function settings_roles_off() {
-    $options = get_option(PLUGIN_OPTIONS);
+    $options = get_option(self::PLUGIN_OPTIONS);
 
     global $wp_roles;
     $roles=$wp_roles->get_names();
     foreach($roles as $role) {
-      echo "&nbsp;&nbsp;<input type='checkbox' name='".PLUGIN_OPTIONS."[role_$role]' value='Y'";
+      echo "&nbsp;&nbsp;<input type='checkbox' name='".self::PLUGIN_OPTIONS."[role_$role]' value='Y'";
       $rolel=strtolower($role);
       if(in_array($rolel,$this->roles_off)) echo " checked";
       echo "> $role<br/>";
@@ -497,22 +506,22 @@ _TRACKING_CODE_;
   }
 
   public function settings_ua_userid() {
-    $options = get_option(PLUGIN_OPTIONS);
-    echo "<input id='ua_userid' name='".PLUGIN_OPTIONS."[ua_userid]' type='checkbox' value='Y'";
+    $options = get_option(self::PLUGIN_OPTIONS);
+    echo "<input id='ua_userid' name='".self::PLUGIN_OPTIONS."[ua_userid]' type='checkbox' value='Y'";
     if($options['ua_userid']=='Y') echo " checked='yes'";
     echo " /> <small><a href='https://support.google.com/analytics/answer/3123669?hl=en&ref_topic=3276066' target='_blank'>Google details.</a> Track userID sessions (UA only)</small>";
   }
 
   public function settings_ua_ecommerce() {
-    $options = get_option(PLUGIN_OPTIONS);
-    echo "<input id='ua_ecommerce' name='".PLUGIN_OPTIONS."[ua_ecommerce]' type='checkbox' value='Y'";
+    $options = get_option(self::PLUGIN_OPTIONS);
+    echo "<input id='ua_ecommerce' name='".self::PLUGIN_OPTIONS."[ua_ecommerce]' type='checkbox' value='Y'";
     if($options['ua_ecommerce']=='Y') echo " checked='yes'";
     echo " /> <small><a href='https://developers.google.com/analytics/devguides/collection/analyticsjs/ecommerce' target='_blank'>Google details.</a> Record Transaction data (UA only)</small>";
   }
 
   public function settings_remarketing() {
-    $options = get_option(PLUGIN_OPTIONS);
-    echo "<input id='display_features' name='".PLUGIN_OPTIONS."[display_features]' type='checkbox' value='Y'";
+    $options = get_option(self::PLUGIN_OPTIONS);
+    echo "<input id='display_features' name='".self::PLUGIN_OPTIONS."[display_features]' type='checkbox' value='Y'";
     if($options['display_features']=='Y') echo " checked='yes'";
     echo " /> <small><a href='https://support.google.com/adwords/answer/2476688?hl=en' target='_blank'>Google details.</a> Turns on Display Advertising Support</small>";
   }

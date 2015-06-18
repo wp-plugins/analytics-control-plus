@@ -74,6 +74,9 @@ Again, contact us using [this form](http://www.aykira.com.au/contact/)
 
 == Changelog ==
 
+= 1.11 -
+* Fixes for const references
+
 = 1.10 =
 * Support for remarketing/Display Advertising (AdWords)
 
