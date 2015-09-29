@@ -3,7 +3,7 @@ Contributors: aykira
 Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking, tracking, stats, statistics, page views, time on site, seo, conversion, privacy, universal analytics
 Requires at least: 3.5
 Tested up to: 4.3.0
-Stable tag: 1.12
+Stable tag: 1.13
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,7 @@ This plugin also:
 * Allows you to turn off Google Analytics tracking for specific pages if required (i.e. privacy or performance).
 * Allows you to turn off Google Analytics for a set of request IP's or subnets (i.e. your office), saves having to fiddle with IP settings in GA itself.
 * Allows you to turn off tracking by role (by default Administrator).
+* Add on JavaScript from other tracking services under the same display controls.
 
 Upcoming Features:
 
@@ -73,6 +74,10 @@ Again, contact us using [this form](http://www.aykira.com.au/contact/)
 1. Just enter your Analytics ID into the settings page, set the options and you are done.
 
 == Changelog ==
+
+= 1.13 -
+* Can added on JavaScript from other tracking providers as needed
+* Link to https://webcheck.aykira.com.au/ in settings screen
 
 = 1.12 -
 * Putting ?_noacp=y in the URL will stop tracking, great for screenshot scripts

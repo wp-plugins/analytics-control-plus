@@ -3,7 +3,7 @@
 Plugin Name: Analytics Control Plus
 Plugin URI: http://www.aykira.com.au/programming/wordpress-plugins/
 Description: Adds Google Analytics tracking code to WordPress with options to: set bounce timeout; enhanced inpage link tracking; demographics controls. Hides code depending on role.
-Version: 1.12
+Version: 1.13
 Author: Aykira Internet Solutions
 Author URI: http://www.aykira.com.au/
 License: GPL2
@@ -28,6 +28,7 @@ class acp_plugin {
   public $ua_userid=false;
   public $ua_ecommerce=false;
   public $display_features=false;
+  public $addon_javascript='';
   private $event_func='';
 
   public static function instance() {
@@ -55,7 +56,8 @@ class acp_plugin {
 			 'in_footer'=>'N',
 			 'ua_userid'=>'N',
 			 'ua_ecommerce'=>'N',
-			 'display_features'=>'N'));
+			 'display_features'=>'N',
+			 'addon_javascript'=>''));
       }
     }
 
@@ -70,6 +72,7 @@ class acp_plugin {
       if(isset($opts['ua_userid'])) $this->ua_userid=($opts['ua_userid']=='Y');
       if(isset($opts['ua_ecommerce'])) $this->ua_ecommerce=($opts['ua_ecommerce']=='Y');
       if(isset($opts['display_features'])) $this->ua_ecommerce=($opts['display_features']=='Y');
+      if(isset($opts['addon_javascript'])) $this->addon_javascript=$opts['addon_javascript'];
       if(isset($opts['excluded_ips'])) {
 	$out=array();
 	foreach(explode(',',str_replace(' ','',trim($opts['excluded_ips']))) as $ip) {
@@ -362,6 +365,10 @@ _TRACKING_CODE_;
       if(in_array($role,$this->roles_off)) $doit=false;
     }
 
+    if(!empty($this->addon_javascript)) {
+      $tracking_script.='<script type="text/javascript">'.$this->addon_javascript.'</script>';
+    }
+
     if($doit) {
       echo $tracking_script;
     }
@@ -390,7 +397,8 @@ _TRACKING_CODE_;
 <img alt="" border="0" src="https://www.paypalobjects.com/en_AU/i/scr/pixel.gif" width="1" height="1">
 </form><br/>
    <small>Every little bit helps &amp; encourages more development, please contribute.</small></br>
-<small><b>Have an idea or suggestion?<br/>Please <a href="http://www.aykira.com.au/contact/" target="_blank">Contact Us</a>.</b></small>
+<small><b>Have an idea or suggestion?<br/>Please <a href="http://www.aykira.com.au/contact/" target="_blank">Contact Us</a>.</b></small><br/>
+ <div style='background:rgba(255,255,255,0.3);padding:6px;margin:7px;margin-top:12px;border-radius:6px;'><b>NEW</b><br/><a href="https://webcheck.aykira.com.au/" target="_blank" title="Try now">Website Checking Tool</a><br/><small>Check SEO, Performance, SEM, Branding and Security.</br>Find out what is wrong with your website and how to fix it.</small></div>
 </div>
 <form method='post' action="options.php" style="width:58%;float:left;">
 <?php settings_fields('acp_settings_group'); ?>
@@ -420,6 +428,7 @@ _TRACKING_CODE_;
     add_settings_field('roles_off', 'Excluded Roles from Tracking', array($this,'settings_roles_off'), 'acp_plugin', 'plugin_main');
     add_settings_field('ua_userid', 'UA User ID Sessions', array($this,'settings_ua_userid'), 'acp_plugin', 'plugin_main');
     add_settings_field('ua_ecommerce', 'UA ECommerce support', array($this,'settings_ua_ecommerce'), 'acp_plugin', 'plugin_main');
+    add_settings_field('addon_javascript', 'Additional Tracking JavaScript', array($this,'settings_addon_javascript'), 'acp_plugin', 'plugin_main');
   }
 
 
@@ -527,6 +536,11 @@ _TRACKING_CODE_;
     echo "<input id='display_features' name='".self::PLUGIN_OPTIONS."[display_features]' type='checkbox' value='Y'";
     if($options['display_features']=='Y') echo " checked='yes'";
     echo " /> <small><a href='https://support.google.com/adwords/answer/2476688?hl=en' target='_blank'>Google details.</a> Turns on Display Advertising Support</small>";
+  }
+
+  public function settings_addon_javascript() {
+    $options = get_option(self::PLUGIN_OPTIONS);
+    echo "<textarea id='display_features' name='".self::PLUGIN_OPTIONS."[addon_javascript]' rows='6' cols='45'>".$options['addon_javascript']."</textarea><br/><small>Enter here any other Tracking JavaScript you want under display control. No need for the outer &lt;script> &lt/script>tags.</small>";
   }
 
 }
