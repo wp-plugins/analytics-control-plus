@@ -3,7 +3,7 @@
 Plugin Name: Analytics Control Plus
 Plugin URI: http://www.aykira.com.au/programming/wordpress-plugins/
 Description: Adds Google Analytics tracking code to WordPress with options to: set bounce timeout; enhanced inpage link tracking; demographics controls. Hides code depending on role.
-Version: 1.13
+Version: 1.14
 Author: Aykira Internet Solutions
 Author URI: http://www.aykira.com.au/
 License: GPL2
@@ -398,7 +398,15 @@ _TRACKING_CODE_;
 </form><br/>
    <small>Every little bit helps &amp; encourages more development, please contribute.</small></br>
 <small><b>Have an idea or suggestion?<br/>Please <a href="http://www.aykira.com.au/contact/" target="_blank">Contact Us</a>.</b></small><br/>
- <div style='background:rgba(255,255,255,0.3);padding:6px;margin:7px;margin-top:12px;border-radius:6px;'><b>NEW</b><br/><a href="https://webcheck.aykira.com.au/" target="_blank" title="Try now">Website Checking Tool</a><br/><small>Check SEO, Performance, SEM, Branding and Security.</br>Find out what is wrong with your website and how to fix it.</small></div>
+<?php $wcUrl='https://webcheck.aykira.com.au/report/?url='.urlencode(site_url());
+ $current_user=wp_get_current_user();
+ if(isset($current_user)) {
+   if(!empty($current_user->user_email)) $wcUrl.='&email='.urlencode($current_user->user_email);
+   if(!empty($current_user->user_firstname) && !empty($current_user->user_lastname))
+     $wcUrl.='&uname='.urlencode($current_user->user_firstname.' '.$current_user->user_lastname);
+ }
+ ?>
+ <div style='border:1px solid #700;background:rgba(255,255,255,0.3);padding:6px;margin:7px;margin-top:12px;border-radius:6px;'><b>NEW</b><br/><a href="https://webcheck.aykira.com.au/" target="_blank" title="Try now">Website Checking Tool</a><br/><small>Check SEO, Performance, SEM, Branding and Security.</br>Find out what is wrong with your website and how to fix it.</small><div style='margin:5px;padding:5px;font-size:110%;background:rgba(100,0,0,0.1);border-radius:4px;'><a href='<?php echo $wcUrl; ?>' target='check'>Test your site now</a></div></div>
 </div>
 <form method='post' action="options.php" style="width:58%;float:left;">
 <?php settings_fields('acp_settings_group'); ?>
@@ -407,6 +415,14 @@ _TRACKING_CODE_;
 </form>
 
 </div><br clear=all>
+<h4>Shortcodes:</h4>
+<p>
+<strong>[ga_event cat="CATEGORY" act="ACTION" lab="LABEL" val="VALUE"]</strong><br/>
+ &nbsp;   &lt;a href="click.php">click me&lt;/a><br/>
+</strong>[/ga_event]</strong>
+</p>
+<p>
+Attaches an action event to all anchors within the shortcode. See <a href="https://developers.google.com/analytics/devguides/collection/analyticsjs/events" target="events">Event Tracking</a> for more information.</p>
 <hr>
 <small><b>Plugin by <a target="_blank" href="http://www.aykira.com.au/">Aykira Internet Solutions</a></b></small>
 <?php

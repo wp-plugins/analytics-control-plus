@@ -1,13 +1,13 @@
 === Analytics Control Plus ===
 Contributors: aykira
-Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking, tracking, stats, statistics, page views, time on site, seo, conversion, privacy, universal analytics
+Tags: analytics, google, traffic, bounce rate, google analytics, demographics, link tracking, tracking, stats, statistics, page views, time on site, seo, conversion, privacy, universal analytics, event tracking
 Requires at least: 3.5
 Tested up to: 4.3.0
-Stable tag: 1.13
+Stable tag: 1.14
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Set up Google Analytics with options (demographics and enhanced link tracking), no JavaScript editing. Does bounce timeout, so more accurate stats.
+Set up Google Analytics with options (demographics and enhanced link tracking), no JavaScript editing. Does bounce timeout, so more accurate stats. Also easy event tracking.
 
 == Description ==
 
@@ -28,6 +28,7 @@ Google Analytics can be operated in several modes:
 * Universal Analytics with demographics, link attribution, UserID session and ECommerce transaction tracking
 
 To swap between these usually requires editing the Google JavaScript and ensuring you have everything correct, often requiring technical skills.
+
 This plugin avoids the need to edit JavaScript by doing it all for you and thereby avoiding costly mistakes.
 Plus it makes it easy to see exactly what you have enabled per site.
 
@@ -38,10 +39,8 @@ This plugin also:
 * Allows you to turn off Google Analytics for a set of request IP's or subnets (i.e. your office), saves having to fiddle with IP settings in GA itself.
 * Allows you to turn off tracking by role (by default Administrator).
 * Add on JavaScript from other tracking services under the same display controls.
+* Support for event tracking
 
-Upcoming Features:
-
-* Easy event tracking, no code cutting required...
 
 [Plugin Home Page](http://www.aykira.com.au/2014/03/analytics-control/)
 
@@ -74,6 +73,9 @@ Again, contact us using [this form](http://www.aykira.com.au/contact/)
 1. Just enter your Analytics ID into the settings page, set the options and you are done.
 
 == Changelog ==
+
+= 1.14 -
+* event tracking shortcode added
 
 = 1.13 -
 * Can added on JavaScript from other tracking providers as needed
